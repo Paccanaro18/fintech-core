@@ -32,7 +32,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/fintech-app:latest
+          tags: ghcr.io/paccanaro18/fintech-app:latest
 
       - name: Deploy na EC2
         uses: appleboy/ssh-action@v1
@@ -42,7 +42,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ghcr.io/${{ github.repository_owner }}/fintech-app:latest
+            docker pull ghcr.io/paccanaro18/fintech-app:latest
             docker stop fintech-app || true
             docker rm fintech-app || true
-            docker run -d --name fintech-app -p 8080:8080 --env-file /home/ubuntu/.env ghcr.io/${{ github.repository_owner }}/fintech-app:latest
+            docker run -d --name fintech-app -p 8080:8080 --env-file /home/ubuntu/.env ghcr.io/paccanaro18/fintech-app:latest
