@@ -3,6 +3,7 @@ package com.paccanaro.fintech.conta;
 import com.paccanaro.fintech.conta.dto.ContaResponse;
 import com.paccanaro.fintech.conta.dto.DepositoRequest;
 import com.paccanaro.fintech.conta.dto.SaqueRequest;
+import com.paccanaro.fintech.conta.dto.TransferenciaRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -33,6 +34,12 @@ public class ContaController {
     @GetMapping
     public ResponseEntity<ContaResponse> visualizarSaldo() {
         Conta conta = contaService.buscarContaLogado();
+        return ResponseEntity.ok(ContaResponse.fromEntity(conta));
+    }
+
+    @PostMapping("/transferir")
+    public ResponseEntity<ContaResponse> transferir(@Valid @RequestBody TransferenciaRequest request) {
+        Conta conta = contaService.transferir(request);
         return ResponseEntity.ok(ContaResponse.fromEntity(conta));
     }
 

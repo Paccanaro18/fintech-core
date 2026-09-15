@@ -1,5 +1,6 @@
 package com.paccanaro.fintech.conta;
 
+import com.paccanaro.fintech.conta.dto.TransferenciaRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +9,7 @@ import com.paccanaro.fintech.conta.dto.SaqueRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class ContaService {
@@ -65,4 +67,46 @@ public class ContaService {
 
         transacaoRepository.save(transacao);
     }
+
+    @Transactional
+    public Conta transferir(TransferenciaRequest request) {
+        Conta contaOrigem = buscarContaLogado();
+
+        Conta contaDestino = contaRepository.findByNumero(request.numeroContaDestino())
+                .orElseThrow(() -> new IllegalArgumentException("Conta de destino não encontrada"));
+
+        if (contaOrigem.getId().equals(contaDestino.getId())) {
+            throw new IllegalArgumentException("Não é possível transferir para a própria conta");
+        }
+
+        UUID primeiroId = contaOrigem.getId().compareTo(contaDestino.getId()) < 0
+                ? contaOrigem.getId() : contaDestino.getId();
+        UUID segundoId = contaOrigem.getId().compareTo(contaDestino.getId()) < 0
+                ? contaDestino.getId() : contaOrigem.getId();
+
+        Conta primeiraBloqueada = contaRepository.findByIdForUpdate(primeiroId)
+                .orElseThrow(() -> new IllegalArgumentException("Conta não encontrada"));
+        Conta segundaBloqueada = contaRepository.findByIdForUpdate(segundoId)
+                .orElseThrow(() -> new IllegalArgumentException("Conta não encontrada"));
+
+        Conta origem = primeiraBloqueada.getId().equals(contaOrigem.getId()) ? primeiraBloqueada : segundaBloqueada;
+        Conta destino = primeiraBloqueada.getId().equals(contaOrigem.getId()) ? segundaBloqueada : primeiraBloqueada;
+
+        if (origem.getSaldo().compareTo(request.valor()) < 0) {
+            throw new IllegalArgumentException("Saldo insuficiente");
+        }
+
+        origem.setSaldo(origem.getSaldo().subtract(request.valor()));
+        destino.setSaldo(destino.getSaldo().add(request.valor()));
+
+        contaRepository.save(origem);
+        contaRepository.save(destino);
+
+        registrarTransacao(origem, TipoTransacao.TRANSFERENCIA_ENVIADA, request.valor(), request.descricao());
+        registrarTransacao(destino, TipoTransacao.TRANSFERENCIA_RECEBIDA, request.valor(), request.descricao());
+
+        return origem;
+    }
+
+
 }
