@@ -1,14 +1,14 @@
 package com.paccanaro.fintech.usuario;
 
 import com.paccanaro.fintech.usuario.dto.CadastroRequest;
+import com.paccanaro.fintech.usuario.dto.LoginRequest;
+import com.paccanaro.fintech.usuario.dto.LoginResponse;
 import com.paccanaro.fintech.usuario.dto.UsuarioResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -27,5 +27,10 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.fromEntity(usuario));
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = usuarioService.login(request);
+        return ResponseEntity.ok(response);
+    }
 
 }
