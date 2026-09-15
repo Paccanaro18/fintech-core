@@ -1,6 +1,8 @@
 package com.paccanaro.fintech.usuario;
 
 import com.paccanaro.fintech.usuario.dto.CadastroRequest;
+import com.paccanaro.fintech.usuario.dto.LoginRequest;
+import com.paccanaro.fintech.usuario.dto.LoginResponse;
 import com.paccanaro.fintech.usuario.dto.UsuarioResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -27,5 +29,10 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.fromEntity(usuario));
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = usuarioService.login(request);
+        return ResponseEntity.ok(response);
+    }
 
 }
