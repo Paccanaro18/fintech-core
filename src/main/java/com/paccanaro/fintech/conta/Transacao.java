@@ -25,6 +25,17 @@ public class Transacao {
 
     private LocalDateTime dataHora;
 
+    @Column(name ="saldo_apos_opecacao", precision = 19, scale = 2)
+    private BigDecimal saldoAposOperacao;
+
+    public BigDecimal getSaldoAposOperacao() {
+        return saldoAposOperacao;
+    }
+
+    public void setSaldoAposOperacao(BigDecimal saldoAposOperacao) {
+        this.saldoAposOperacao = saldoAposOperacao;
+    }
+
     public BigDecimal getValor() {
         return valor;
     }
