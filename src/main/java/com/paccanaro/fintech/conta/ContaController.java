@@ -1,10 +1,10 @@
 package com.paccanaro.fintech.conta;
 
-import com.paccanaro.fintech.conta.dto.ContaResponse;
-import com.paccanaro.fintech.conta.dto.DepositoRequest;
-import com.paccanaro.fintech.conta.dto.SaqueRequest;
-import com.paccanaro.fintech.conta.dto.TransferenciaRequest;
+import com.paccanaro.fintech.conta.dto.*;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +41,16 @@ public class ContaController {
     public ResponseEntity<ContaResponse> transferir(@Valid @RequestBody TransferenciaRequest request) {
         Conta conta = contaService.transferir(request);
         return ResponseEntity.ok(ContaResponse.fromEntity(conta));
+    }
+
+    @GetMapping("/extrato")
+    public ResponseEntity<Page<TransacaoResponse>> obterExtrato(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TransacaoResponse> extrato = contaService.obterExtrato(pageable);
+        return ResponseEntity.ok(extrato);
     }
 
 }
