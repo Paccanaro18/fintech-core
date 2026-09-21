@@ -1,6 +1,9 @@
 package com.paccanaro.fintech.conta;
 
+import com.paccanaro.fintech.conta.dto.TransacaoResponse;
 import com.paccanaro.fintech.conta.dto.TransferenciaRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +39,7 @@ public class ContaService {
         conta.setSaldo(conta.getSaldo().add(request.valor()));
         conta = contaRepository.save(conta);
 
-        registrarTransacao(conta, TipoTransacao.DEPOSITO, request.valor(), request.descricao());
+        registrarTransacao(conta, TipoTransacao.DEPOSITO, request.valor(), request.descricao(), conta.getSaldo());
 
         return conta;
     }
@@ -52,18 +55,23 @@ public class ContaService {
         conta.setSaldo(conta.getSaldo().subtract(request.valor()));
         conta = contaRepository.save(conta);
 
-        registrarTransacao(conta, TipoTransacao.SAQUE, request.valor(), request.descricao());
+        registrarTransacao(conta, TipoTransacao.SAQUE, request.valor(), request.descricao(), conta.getSaldo());
 
         return conta;
     }
 
-    private void registrarTransacao(Conta conta, TipoTransacao tipo, BigDecimal valor, String descricao) {
+    private void registrarTransacao(Conta conta,
+                                    TipoTransacao tipo,
+                                    BigDecimal valor,
+                                    String descricao,
+                                    BigDecimal saldoAposOperacao) {
         Transacao transacao = new Transacao();
         transacao.setConta(conta);
         transacao.setTipo(tipo);
         transacao.setValor(valor);
         transacao.setDescricao(descricao);
         transacao.setDataHora(LocalDateTime.now());
+        transacao.setSaldoAposOperacao(saldoAposOperacao);
 
         transacaoRepository.save(transacao);
     }
@@ -102,11 +110,20 @@ public class ContaService {
         contaRepository.save(origem);
         contaRepository.save(destino);
 
-        registrarTransacao(origem, TipoTransacao.TRANSFERENCIA_ENVIADA, request.valor(), request.descricao());
-        registrarTransacao(destino, TipoTransacao.TRANSFERENCIA_RECEBIDA, request.valor(), request.descricao());
+        registrarTransacao(origem, TipoTransacao.TRANSFERENCIA_ENVIADA, request.valor(), request.descricao(), origem.getSaldo());
+        registrarTransacao(destino, TipoTransacao.TRANSFERENCIA_RECEBIDA, request.valor(), request.descricao(), destino.getSaldo());
 
         return origem;
     }
 
+
+    public Page<TransacaoResponse> obterExtrato(Pageable pageable) {
+        Conta conta = buscarContaLogado();
+
+        return transacaoRepository
+                .findByContaIdOrderByDataHoraDesc(conta.getId(), pageable)
+                .map(TransacaoResponse::from);  // Converte cada Transacao em TransacaoResponse
+
+    }
 
 }
