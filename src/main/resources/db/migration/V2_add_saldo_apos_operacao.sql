@@ -1,0 +1,1 @@
+ALTER TABLE transacao ADD COLUMN saldo_apos_operacao DECIMAL(19,2)
