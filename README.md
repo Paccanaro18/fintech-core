@@ -10,6 +10,7 @@ O projeto está sendo construído como um projeto pessoal para colocar em práti
 - Cadastro e gerenciamento de usuários
 - Depósito
 - Saque
+- Extrato
 - Transferência entre contas
 - Operações financeiras com controle transacional utilizando `@Transactional`
 - Persistência em PostgreSQL
